@@ -6,15 +6,14 @@
 
 #include "ofxPostGlitch.h"
 
-void ofxPostGlitch::setup(ofFbo *buffer_){
-	targetBuffer = buffer_;
-	buffer_size.set(buffer_->getWidth(), buffer_->getHeight());
-	ShadingBuffer.allocate(buffer_size.x,buffer_size.y);
-}
-
-void ofxPostGlitch::setFbo(ofFbo *buffer_){
-	targetBuffer = buffer_;
-	buffer_size.set(buffer_->getWidth(), buffer_->getHeight());
+void ofxPostGlitch::setup(ofTexture* texture_){
+	texture = texture_;
+	if (!texture){
+		ofLogWarning("ofxPostGlitch", "Texture is null.");
+		return;
+	}
+	
+	buffer_size.set(texture->getWidth(), texture->getHeight());
 	ShadingBuffer.allocate(buffer_size.x,buffer_size.y);
 }
 
@@ -31,8 +30,13 @@ bool ofxPostGlitch::getFx(ofxPostGlitchType type_){
 }
 
 void ofxPostGlitch::generateFx(){
-	if (targetBuffer == NULL){
-		ofLog(OF_LOG_WARNING, "ofxFboFX --- Fbo is not allocated.");
+	if (!texture){
+		ofLogWarning("ofxPostGlitch", "Texture is null.");
+		return;
+	}
+
+	if (!texture->isAllocated()){
+		ofLogWarning("ofxPostGlitch", "Texture is not allocated");
 		return;
 	}
 
@@ -53,7 +57,7 @@ void ofxPostGlitch::generateFx(){
 	for (int i = 0;i < GLITCH_NUM;i++){
 		if (bShading[i]){
 			shader[i].begin();
-			shader[i].setUniformTexture	("image"		,*targetBuffer,0);
+			shader[i].setUniformTexture	("image"		,*texture,0);
 			shader[i].setUniform1i		("trueWidth"	,buffer_size.x);
 			shader[i].setUniform1i		("trueHeight"	,buffer_size.y);
 			shader[i].setUniform1f		("rand"			,ofRandom(1));
@@ -69,13 +73,16 @@ void ofxPostGlitch::generateFx(){
 			ShadingBuffer.begin();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			ofRect(0, 0, buffer_size.x, buffer_size.y);
-			ShadingBuffer.end();
+			drawFunction();
+			ShadingBuffer.end();	
+			
+			
 			shader[i].end();
 
-			targetBuffer->begin();
+			// targetBuffer->begin();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			ShadingBuffer.draw(0, 0,buffer_size.x,buffer_size.y);
-			targetBuffer->end();
+			// targetBuffer->end();
 		}
 	}
 }

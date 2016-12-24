@@ -36,7 +36,7 @@ class ofxPostGlitch{
 public:
 
 	ofxPostGlitch(){
-		targetBuffer = NULL;
+		texture = nullptr;
 		shader[0].load("Shaders/convergence");
 		shader[1].load("Shaders/glow");
 		shader[2].load("Shaders/shaker");
@@ -56,11 +56,8 @@ public:
 		shader[16].load("Shaders/crGreeninvert");
 	}
 
-	/* Initialize & set target Fbo */
-	void setup(ofFbo* buffer_);
-
-	/* Set target Fbo */
-	void setFbo(ofFbo* buffer_);
+	/* Initialize & set texture */
+	void setup(ofTexture* texture_);
 
 	/* Switch each effects on/off */
 	void setFx(ofxPostGlitchType type_,bool enabled);
@@ -72,12 +69,12 @@ public:
 	bool getFx(ofxPostGlitchType type_);
 
 	/* Apply enable effects to target Fbo */
-	void generateFx();
+	void generateFx(function<void()> drawFunction);
 
 protected:
 	bool		bShading[GLITCH_NUM];
 	ofShader	shader[GLITCH_NUM];
-	ofFbo*		targetBuffer;
+	ofTexture*	texture;
 	ofFbo		ShadingBuffer;
 	ofPoint		buffer_size;
 	float ShadeVal[4];
